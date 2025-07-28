@@ -20,10 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {	// Create event listener
 			case '*':		// Multiplication
 				return a * b;
 			case '/':		//Division 
-				if (b === 0) return 'Can\'t divide by 0';	// Return error message if divide by zero
+				if (b === 0) return 'Can\'t divide by 0!';	// Return error message if divide by zero
 				return a / b;
-			default:
-				return 'Invalid operator!';
 		}
 	}
 
@@ -71,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {	// Create event listener
 			if (currentText === '0') display.value += '0';
 			if (previousText === '') previousText = currentText;	// If previous number not exist then store as previous number and move space for new number 
 			else previousText = String(calculate(previousText, currentText, operator));
-			if (previousText === 'Invalid input!' || previousText === 'Can\'t divide by 0') {
+			if (previousText === 'Invalid input!' || previousText === 'Can\'t divide by 0!') {
 				display.value = previousText;
 				resetCalculator();
 				return;

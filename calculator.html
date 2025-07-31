@@ -1,33 +1,62 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simple Calculator</title>
-<link rel="stylesheet" href="calculator.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Calculator</title>
+    <link rel="stylesheet" href="calculator.css">
 </head>
 <body>
-<div id="calculator">
-<input type="text" id="display" readonly>
-<div class="buttons">
-<button class="clear">C</button>
-<button class="operator">/</button>
-<button class="operator">*</button>
-<button class="digit">7</button>
-<button class="digit">8</button>
-<button class="digit">9</button>
-<button class="operator">-</button>
-<button class="digit">4</button>
-<button class="digit">5</button>
-<button class="digit">6</button>
-<button class="operator" style="grid-row: span 2;">+</button>
-<button class="digit">1</button>
-<button class="digit">2</button>
-<button class="digit">3</button>
-<button class="decimal">.</button>
-<button class="digit" style="grid-column: span 2;">0</button>
-<button class="equals">=</button>
-</div>
-</div>
-<script src="calculator.js"></script>
+    <div id="calculator" tabindex="0">
+        <div class="screen">
+            <div id="expression" class="small-screen"></div>
+            <input type="text" id="display" class="big-screen" readonly>
+        </div>
+        <div class="buttons">
+            <!-- Scientific Functions -->
+            <button class="fn" data-fn="square">x²</button>
+            <button class="fn" data-fn="power">x^y</button>
+            <button class="fn" data-fn="sqrt">√</button>
+            <button class="fn" data-fn="root">y√x</button>
+
+            <button class="fn" data-fn="inv">1/x</button>
+            <button class="fn" data-fn="e">e</button>
+            <button class="fn toggle" data-fn="ln">ln</button>
+            <button class="fn toggle" data-fn="log">log</button>
+
+            <button class="fn" data-fn="pi">π</button>
+            <button class="fn toggle" data-fn="sin">sin</button>
+            <button class="fn toggle" data-fn="cos">cos</button>
+            <button class="fn toggle" data-fn="tan">tan</button>
+
+            <!-- Core Buttons -->
+            <button class="clear">C</button>
+            <button class="operator">(</button>
+            <button class="operator">)</button>
+            <button class="operator">/</button>
+
+            <button class="digit">7</button>
+            <button class="digit">8</button>
+            <button class="digit">9</button>
+            <button class="operator">*</button>
+
+            <button class="digit">4</button>
+            <button class="digit">5</button>
+            <button class="digit">6</button>
+            <button class="operator">-</button>
+
+            <button class="digit">1</button>
+            <button class="digit">2</button>
+            <button class="digit">3</button>
+            <button class="operator">+</button>
+
+            <button class="fn" data-fn="%">%</button>
+            <button class="digit">0</button>
+            <button class="decimal">.</button>
+            <button class="equals">=</button>
+        </div>
+    </div>
+
+    <script src="calculator.js"></script>
 </body>
 </html>

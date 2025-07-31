@@ -1,96 +1,248 @@
-// Enforces strict mode, which helps catch common coding errors and "unsafe" actions.
 'use strict';
 
-document.addEventListener('DOMContentLoaded', () => {	// Create event listener
-	function resetCalculator() {	// Function to initialize calculator
-		previousText = '';	// Clear previous text
-		operator = null;	// Clear operator
-		currentText = '0';	// Set current text to 0
-	}
+document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
+    const display = document.getElementById('display');
+    const expressionDiv = document.getElementById('expression');
+    const buttonsContainer = document.querySelector('.buttons');
+    const calculator = document.getElementById('calculator');
 
-	function calculate(previousText, currentText, operator) {	// Function to calculate result
-		const a = parseFloat(previousText);	// Converts the first number string to a floating-point number.
-		const b = parseFloat(currentText);	// Converts the second number string to a floating-point number.
-		if (isNaN(a) || isNaN(b)) return 'Invalid input!';	// Return error message if parseFloat failed
-		switch (operator) {		// Switch condition for different operator and equation
-			case '+':		// Addition
-				return a + b;
-			case '-':		// Subtraction
-				return a - b;
-			case '*':		// Multiplication
-				return a * b;
-			case '/':		//Division 
-				if (b === 0) return 'Can\'t divide by 0!';	// Return error message if divide by zero
-				return a / b;
-		}
-	}
+    // --- State Management ---
+    let mainExpression = '';      // Stores the committed parts of the calculation
+    let pendingOp = null;         // Object to hold details of a pending function
+    let resultDisplayed = false;
 
-	const calculator = document.getElementById('calculator');	// Read from <div class="buttons">
-	const display = document.getElementById('display');		// Read from <input type="text" id="display" readonly>
-	let previousText, operator, currentText;			// Declare variables
-	resetCalculator();						// Initialize calculator at start
-	display.value = '0';
+    /**
+     * Resets the calculator to its initial state.
+     */
+    function clearAll() {
+        mainExpression = '';
+        pendingOp = null;
+        resultDisplayed = false;
+        display.value = '0';
+        expressionDiv.textContent = '';
+    }
 
-	calculator.addEventListener('click', (event) => {		// Create event listener for click event
-		const calculatorTarget = event.target;			// Receive clicked html element
+    /**
+     * Updates the main display based on the current state.
+     */
+    function updateDisplay() {
+        if (pendingOp) {
+            let pendingStr = '';
+            switch (pendingOp.type) {
+                case 'power':
+                    pendingStr = `(${pendingOp.firstOperand})^${pendingOp.input || ''}`;
+                    break;
+                case 'root':
+                    pendingStr = `${pendingOp.input || ''}√(${pendingOp.firstOperand})`;
+                    break;
+                case 'ln':
+                    pendingStr = `ln(${pendingOp.input || ''})`;
+                    break;
+                case 'log':
+                    pendingStr = `log(${pendingOp.input || ''})`;
+                    break;
+                case 'sin':
+                    pendingStr = `sin(${pendingOp.input || ''})`;
+                    break;
+                case 'cos':
+                    pendingStr = `cos(${pendingOp.input || ''})`;
+                    break;
+                case 'tan':
+                    pendingStr = `tan(${pendingOp.input || ''})`;
+                    break;
+            }
+            display.value = mainExpression + pendingStr;
+        } else {
+            display.value = mainExpression || '0';
+        }
+    }
 
-		if (calculatorTarget.tagName !== 'BUTTON') return;	// If no html element BUTTON clicked then exit
+    /**
+     * Commits the pending operation, evaluates it, and updates the main expression with the result.
+     * @returns {string} The string representation of the calculation for the top display.
+     */
+    function commitPendingOperation() {
+        if (!pendingOp || pendingOp.input === '') {
+            pendingOp = null;
+            return '';
+        }
 
-		const buttonClick = calculatorTarget.textContent;	// Read clicked button
+        let expressionToEvaluate = '';
+        let displayString = '';
+        const degToRad = `(Math.PI / 180 * ${pendingOp.input})`;
 
-		if (calculatorTarget.classList.contains('clear')) {	// If click C by <button class="clear"> then exit
-			resetCalculator();
-			display.value = '0';	// Set display screen value to 0
-			return;
-		}
+        switch (pendingOp.type) {
+            case 'power':
+                expressionToEvaluate = `Math.pow(${pendingOp.firstOperand}, ${pendingOp.input})`;
+                displayString = `${pendingOp.firstOperand}^${pendingOp.input}`;
+                break;
+            case 'root':
+                expressionToEvaluate = `Math.pow(${pendingOp.firstOperand}, 1/${pendingOp.input})`;
+                displayString = `${pendingOp.input}√(${pendingOp.firstOperand})`;
+                break;
+            case 'ln':
+                expressionToEvaluate = `Math.log(${pendingOp.input})`;
+                displayString = `ln(${pendingOp.input})`;
+                break;
+            case 'log':
+                expressionToEvaluate = `Math.log10(${pendingOp.input})`;
+                displayString = `log(${pendingOp.input})`;
+                break;
+            case 'sin':
+                expressionToEvaluate = `Math.sin(${degToRad})`;
+                displayString = `sin(${pendingOp.input})`;
+                break;
+            case 'cos':
+                expressionToEvaluate = `Math.cos(${degToRad})`;
+                displayString = `cos(${pendingOp.input})`;
+                break;
+            case 'tan':
+                expressionToEvaluate = `Math.tan(${degToRad})`;
+                displayString = `tan(${pendingOp.input})`;
+                break;
+        }
 
-		if (calculatorTarget.classList.contains('digit')) {	// If click number by <button class="digit">
-			if (currentText === '0' && previousText === '' && buttonClick !== '0') display.value = '';	// If first time input 1-9 then update display screen
+        try {
+            const result = new Function('return ' + expressionToEvaluate)();
+            mainExpression = String(parseFloat(result.toPrecision(14)));
+        } catch (error) {
+            mainExpression = 'Error';
+        } finally {
+            pendingOp = null;
+        }
+        return displayString;
+    }
 
-			currentText += buttonClick;
-			display.value += buttonClick;
-		}
-// To Do List:
-// 1) Aoid multiple 00 by checking every character in [currentText] contains other than 0:
-// currentText.includes('.') && /[^0]/.test(currentText)
-// 2) Add 0 after any [number+0] that becomes [number+] by checking last character of display.value include any operator
-// ['+', '-', '*', '/'].includes(display.value.slice(-1))
+    /**
+     * Handles all button clicks using event delegation.
+     */
+    function onButtonClick(e) {
+        if (e.target.tagName !== 'BUTTON') return;
+        
+        const button = e.target;
+        const value = button.textContent;
+        const isDigit = button.classList.contains('digit') || button.classList.contains('decimal');
+        
+        if (resultDisplayed && (isDigit || button.dataset.fn)) {
+            clearAll();
+        }
+        if (resultDisplayed) {
+            resultDisplayed = false;
+        }
+        
+        if (mainExpression === '0' && isDigit) mainExpression = '';
 
-		if (calculatorTarget.classList.contains('decimal')) {	// If click dot by <button class="decimal">
-			if (currentText.includes('.')) return;		// If already exist decimal then exit
-			if (currentText === '0') currentText = '0.';	// If enter decimal on 0 then decimal become 0.
-			else currentText += '.';			// Add decimal after number
-			display.value += '.';				// Update display screen
-		}
+        if (pendingOp) {
+            if (isDigit) {
+                pendingOp.input += value;
+            } else if (button.classList.contains('equals')) {
+                const committedString = commitPendingOperation();
+                expressionDiv.textContent = committedString + ' =';
+                resultDisplayed = true;
+            }
+        } else {
+            if (isDigit) {
+                mainExpression += value;
+            } else if (button.classList.contains('operator')) {
+                mainExpression += value;
+            } else if (button.classList.contains('equals')) {
+                calculate();
+            } else if (button.classList.contains('clear')) {
+                clearAll();
+            } else if (button.dataset.fn) {
+                handleFunction(button.dataset.fn);
+            }
+        }
+        
+        updateDisplay();
+    }
 
-		if (calculatorTarget.classList.contains('operator')) {		// If click operator by <button class="operator">
-			operator = buttonClick;					// Set operator to text
-			if (display.value === '0') display.value = '';
-			if (currentText === '0') display.value += '0';
-			if (previousText === '') previousText = currentText;	// If previous number not exist then store as previous number and move space for new number 
-			else previousText = String(calculate(previousText, currentText, operator));
-			if (previousText === 'Invalid input!' || previousText === 'Can\'t divide by 0!') {
-				display.value = previousText;
-				resetCalculator();
-				return;
-			}
-			currentText = '0';			// Initialize current text to 0
-			display.value += operator;		// Update display screen
-		}
+    /**
+     * Handles function buttons, either by performing an immediate calculation or setting up a pending operation.
+     */
+    function handleFunction(funcName) {
+        const isImmediate = ['square', 'sqrt', 'inv', '%'].includes(funcName);
+        const isPending = ['ln', 'log', 'sin', 'cos', 'tan', 'power', 'root'].includes(funcName);
 
-		if (calculatorTarget.classList.contains('equals')) {		// If click =  by <button class="equals">
-			if (previousText === '' || operator === null) return;	// If previous number or operator not exist then exit
-			previousText = String(calculate(previousText, currentText, operator));
-			if (previousText === 'Invalid input!' || previousText === 'Can\'t divide by 0!') {
-				display.value = previousText;
-				resetCalculator();
-				return;
-			}
-			operator = null;	// Clear operator after calculation is completed
-			currentText = '0';	// Initialize current text to 0
+        if (!mainExpression && (isImmediate || isPending)) return;
 
-			display.value = previousText;
-		}
+        switch (funcName) {
+            case 'square':
+            case 'sqrt':
+            case 'inv':
+            case '%':
+                try {
+                    const baseExpression = mainExpression;
+                    let result;
+                    let topDisplayString = '';
+                    if (funcName === 'square') {
+                        topDisplayString = `(${baseExpression})² =`;
+                        result = new Function('return Math.pow(' + baseExpression + ', 2)')();
+                    } else if (funcName === 'sqrt') {
+                        topDisplayString = `√(${baseExpression}) =`;
+                        result = new Function('return Math.sqrt(' + baseExpression + ')')();
+                    } else if (funcName === 'inv') {
+                        topDisplayString = `1/(${baseExpression}) =`;
+                        result = new Function('return 1/(' + baseExpression + ')')();
+                    } else { // Percent
+                        topDisplayString = `${baseExpression}% =`;
+                        result = new Function('return (' + baseExpression + ') / 100')();
+                    }
+                    expressionDiv.textContent = topDisplayString;
+                    mainExpression = String(result);
+                    resultDisplayed = true;
+                } catch {
+                    mainExpression = 'Error';
+                }
+                break;
+            case 'power':
+            case 'root':
+            case 'ln':
+            case 'log':
+            case 'sin':
+            case 'cos':
+            case 'tan':
+                pendingOp = { 
+                    type: funcName, 
+                    firstOperand: mainExpression, // Used by power/root
+                    input: '' 
+                };
+                mainExpression = '';
+                break;
+            case 'pi':
+                mainExpression = String(Math.PI);
+                resultDisplayed = true;
+                break;
+            case 'e':
+                mainExpression = String(Math.E);
+                resultDisplayed = true;
+                break;
+            default:
+                 mainExpression += `${funcName}(`;
+                break;
+        }
+    }
 
-	});
+    /**
+     * Evaluates the final expression when equals is pressed.
+     */
+    function calculate() {
+        if (mainExpression === '' || mainExpression === 'Error') return;
+        
+        expressionDiv.textContent = mainExpression + ' =';
+        try {
+            const result = new Function('return ' + mainExpression)();
+            mainExpression = String(parseFloat(result.toPrecision(14)));
+            resultDisplayed = true;
+        } catch (error) {
+            mainExpression = 'Error';
+            resultDisplayed = true;
+        }
+    }
+
+    // --- Event Listeners and Initialization ---
+    buttonsContainer.addEventListener('click', onButtonClick);
+    clearAll();
+    calculator.focus();
 });

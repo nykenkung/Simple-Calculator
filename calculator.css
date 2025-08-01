@@ -49,6 +49,12 @@ body {
 	gap: 10px;
 }
 
+.buttons button:nth-child(-n+12) {
+	height: 26px; /* 2/3 of the default height (40px) */
+	font-size: 0.85em;
+	padding: 6px;
+}
+
 button {
 	padding: 15px;
 	font-size: 1.2em;

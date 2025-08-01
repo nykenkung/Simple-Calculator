@@ -124,37 +124,49 @@ document.addEventListener('DOMContentLoaded', () => {
         const value = button.textContent;
         const isDigit = button.classList.contains('digit') || button.classList.contains('decimal');
         
+        // If the result is displayed and the user presses a new button, reset the calculator
         if (resultDisplayed && (isDigit || button.dataset.fn)) {
-            clearAll();
-        }
-        if (resultDisplayed) {
+            mainExpression = display.value;  // Start with the result as the next input
             resultDisplayed = false;
         }
         
+        if (resultDisplayed) {
+            resultDisplayed = false;
+        }
+
+        // If display is '0' and a digit is pressed, remove '0' and append the digit
         if (mainExpression === '0' && isDigit) mainExpression = '';
 
         if (pendingOp) {
             if (isDigit) {
+                // Add digits to the pending input
                 pendingOp.input += value;
             } else if (button.classList.contains('equals')) {
+                // When equals is pressed, commit the pending operation and update the display
                 const committedString = commitPendingOperation();
                 expressionDiv.textContent = committedString + ' =';
                 resultDisplayed = true;
             }
         } else {
             if (isDigit) {
+                // Append digits to the main expression
                 mainExpression += value;
             } else if (button.classList.contains('operator')) {
+                // Append operators to the main expression
                 mainExpression += value;
             } else if (button.classList.contains('equals')) {
+                // Evaluate the final expression when equals is pressed
                 calculate();
             } else if (button.classList.contains('clear')) {
+                // Clear the calculator
                 clearAll();
             } else if (button.dataset.fn) {
+                // Handle functions (like square, sqrt, sin, etc.)
                 handleFunction(button.dataset.fn);
             }
         }
         
+        // Always update the display to reflect the latest expression or result
         updateDisplay();
     }
 
@@ -192,8 +204,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     expressionDiv.textContent = topDisplayString;
                     mainExpression = String(result);
                     resultDisplayed = true;
+                    display.value = result;  // Update the display directly
                 } catch {
                     mainExpression = 'Error';
+                    display.value = 'Error';  // Show error directly on the display
                 }
                 break;
             case 'power':
@@ -213,13 +227,15 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'pi':
                 mainExpression = String(Math.PI);
                 resultDisplayed = true;
+                display.value = Math.PI;  // Directly update the display with Pi value
                 break;
             case 'e':
                 mainExpression = String(Math.E);
                 resultDisplayed = true;
+                display.value = Math.E;  // Directly update the display with Euler's constant
                 break;
             default:
-                 mainExpression += `${funcName}(`;
+                mainExpression += `${funcName}(`;
                 break;
         }
     }
@@ -235,9 +251,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = new Function('return ' + mainExpression)();
             mainExpression = String(parseFloat(result.toPrecision(14)));
             resultDisplayed = true;
+            display.value = mainExpression;  // Update the display with the result
         } catch (error) {
             mainExpression = 'Error';
             resultDisplayed = true;
+            display.value = 'Error';  // Show error directly on the display
         }
     }
 

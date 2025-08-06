@@ -2,9 +2,9 @@
 https://nykenkung.github.io/Simple-Calculator/calculator.html
 
 ---------- calculator.html ----------
-- Include <div id="calculator"> element to contain all calculator components.
+- Include \<div id="calculator"\> element to contain all calculator components.
 - Inside the calculator div, it has:
-- A display area (e.g., <input type="text" id="display" readonly>) to show input and results.
+- A display area (e.g., \<input type="text" id="display" readonly\>) to show input and results.
 - Buttons for digits (0-9).
 - Buttons for basic arithmetic operations (+, -, *, /).
 - A button for the decimal point (.).
